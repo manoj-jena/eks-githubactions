@@ -6,7 +6,14 @@ terraform {
       source  = "hashicorp/aws"
     }
   }
-
+  backend "s3" {
+    bucket         = "${var.bucket}"
+    dynamodb_table = "${var.dynamodb_table}"
+    key            = "terraform-eks-asset.tfstate"
+    region         = "${var.region}"
+    encrypt        = true
+   
+  }
 }
 
 data "aws_availability_zones" "available" {
@@ -14,13 +21,13 @@ data "aws_availability_zones" "available" {
 }
 
 #Module S3 bucket for storing pipeline artifacts
-module "s3_artifacts_bucket" {
-  source                = "./modules/s3"
-  bucket                        = var.bucket
-  dynamodb_table                = var.dynamodb_table
-  region                        = var.region
+#module "s3_artifacts_bucket" {
+#  source                = "./modules/s3"
+#  bucket                        = var.bucket
+#  dynamodb_table                = var.dynamodb_table
+#  region                        = var.region
   
-}
+#}
 
 #VPC Module 
 module "vpc_infra" {
