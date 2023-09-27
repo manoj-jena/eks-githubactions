@@ -22,7 +22,7 @@ jobs:
         aws-region: ${{env.region}}
         
     - name: Initialize Terraform
-      run: terraform init
+      run: terraform init -from-module=../modules/s3
       
     - name: Apply Infrastructure Changes
       run: terraform apply -auto-approve -lock=false
