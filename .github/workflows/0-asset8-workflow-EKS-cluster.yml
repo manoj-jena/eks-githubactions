@@ -24,24 +24,24 @@ jobs:
     - name: Initialize Terraform
       run: terraform init
       
-    # - name: Apply Infrastructure Changes
-    #   run: terraform apply -auto-approve -lock=false
-    # - name: Install kubectl
-    #   run: |
-    #     curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-    #     chmod +x kubectl
-    #     sudo mv kubectl /usr/local/bin/
+    - name: Apply Infrastructure Changes
+      run: terraform apply -auto-approve -lock=false
+    - name: Install kubectl
+      run: |
+        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+        chmod +x kubectl
+        sudo mv kubectl /usr/local/bin/
 
-    # - name: Install Helm
-    #   run: |        
-    #     wget https://get.helm.sh/helm-v3.9.3-linux-amd64.tar.gz
-    #     tar xvf helm-v3.9.3-linux-amd64.tar.gz
-    #     sudo mv linux-amd64/helm /usr/local/bin
-    #     helm version
+    - name: Install Helm
+      run: |        
+        wget https://get.helm.sh/helm-v3.9.3-linux-amd64.tar.gz
+        tar xvf helm-v3.9.3-linux-amd64.tar.gz
+        sudo mv linux-amd64/helm /usr/local/bin
+        helm version
 
-    # - name: Configure kubectl for EKS
-    #   run: aws eks update-kubeconfig --name ${{env.cluster_name}} --region ${{env.region}}
+    - name: Configure kubectl for EKS
+      run: aws eks update-kubeconfig --name ${{env.cluster_name}} --region ${{env.region}}
           
   
-    - name: Destroy Infrastructure
-      run: terraform destroy -auto-approve -lock=false  
+    # - name: Destroy Infrastructure
+    #   run: terraform destroy -auto-approve -lock=false  
