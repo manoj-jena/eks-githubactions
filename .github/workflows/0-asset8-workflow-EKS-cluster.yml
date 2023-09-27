@@ -1,0 +1,47 @@
+name: 0-EKS CLUSTER CREATION
+env:
+  region: 'eu-central-1'
+  cluster_name: 'tsi-asset-demo-cluster'
+  
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+jobs:
+  EKS-CLUSTER:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Setup AWS CLI
+      uses: aws-actions/configure-aws-credentials@v1-node16
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{env.region}}
+        
+    - name: Initialize Terraform
+      run: terraform init
+      
+    # - name: Apply Infrastructure Changes
+    #   run: terraform apply -auto-approve -lock=false
+    # - name: Install kubectl
+    #   run: |
+    #     curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+    #     chmod +x kubectl
+    #     sudo mv kubectl /usr/local/bin/
+
+    # - name: Install Helm
+    #   run: |        
+    #     wget https://get.helm.sh/helm-v3.9.3-linux-amd64.tar.gz
+    #     tar xvf helm-v3.9.3-linux-amd64.tar.gz
+    #     sudo mv linux-amd64/helm /usr/local/bin
+    #     helm version
+
+    # - name: Configure kubectl for EKS
+    #   run: aws eks update-kubeconfig --name ${{env.cluster_name}} --region ${{env.region}}
+          
+  
+    - name: Destroy Infrastructure
+      run: terraform destroy -auto-approve -lock=false  

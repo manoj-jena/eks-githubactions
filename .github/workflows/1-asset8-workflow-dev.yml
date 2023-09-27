@@ -1,0 +1,50 @@
+name: 1-Application deployment using Helm  on dev env
+env:
+  region: 'eu-central-1'
+  cluster_name: 'tsi-asset-demo-cluster'
+  chart_name: 'nginx-chart'
+  app_name: 'my-app'
+  namespace: 'dev'
+  delay: '60'
+
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: Application deployment using Helm  on dev env
+        default: 'dev'
+        required: true
+        type: string        
+jobs:
+  DEV-ENV:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Setup AWS CLI
+      uses: aws-actions/configure-aws-credentials@v1-node16
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{env.region}}
+        
+    - name: Configure kubectl for EKS
+      run: aws eks update-kubeconfig --name ${{env.cluster_name}} --region ${{env.region}}
+    # - name: Create Namespace
+    #   run: kubectl create namespace ${{env.namespace}}     
+    - name: Helm Deploy
+      run: helm install  ${{env.app_name}} ./${{env.chart_name}}  --namespace ${{env.namespace}} 
+    - name: Sleep for 1 minutes
+      run: sleep ${{env.delay}}
+    - name: Check deployed pod on Dev Environment
+      run: kubectl get pods -n ${{env.namespace}}
+    - name: check helm list  
+      run: helm ls -A
+    - name: check svc list
+      run: kubectl get svc -n ${{env.namespace}}
+    - name: Sleep for 1 minute
+      run: sleep ${{env.delay}}
+    - name: uninstall application
+      run: helm uninstall ${{env.app_name}} -n ${{env.namespace}}
+      
+  

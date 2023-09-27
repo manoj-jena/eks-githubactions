@@ -1,0 +1,64 @@
+name: 4-Application life-cycle mgmt using helm-chart
+env:
+  region: 'eu-central-1'
+  cluster_name: 'tsi-asset-demo-cluster'
+  chart_name: 'nginx-chart'
+  app_name: 'my-app'
+  namespace: 'prod'
+  delay: '60'
+  replicacount: '2'
+  version: '1'
+on:
+  workflow_dispatch:
+    inputs:
+      name: 
+        description: Application life-cycle mgmt using helm-chart
+        default: 'prod'
+        required: true
+        type: string
+
+jobs:
+  ROLLBACK:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Setup AWS CLI
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{env.region}}  
+
+    - name: Configure kubectl for EKS
+      run: aws eks update-kubeconfig --name ${{env.cluster_name}} --region ${{env.region}}
+    - name: Helm Deploy on Prod env/namespace
+      run: helm install  ${{env.app_name}} ./${{env.chart_name}} --set env.name=${{env.namespace}} -n ${{env.namespace}} 
+    - name: Sleep for 1 minute
+      run: sleep ${{env.delay}} 
+    - name: Check deployed pod
+      run: kubectl get pods -n  ${{env.namespace}}
+    - name: check svc list
+      run: kubectl get svc -n ${{env.namespace}}  
+    - name: check helm list  
+      run: helm ls -A
+    - name: upgrade application with replica count=2
+      run:  helm upgrade ${{env.app_name}} ./${{env.chart_name}} --set replicaCount=${{env.replicacount}} -n  ${{env.namespace}}
+    - name: Sleep 1 minute
+      run: sleep ${{env.delay}}
+    - name: Helm list
+      run:  helm ls -A
+    - name: Check deployed pod
+      run: kubectl get pods -n  ${{env.namespace}}  
+    - name: Rollback using helm
+      run: helm rollback ${{env.app_name}} ${{env.version}}  -n ${{env.namespace}} 
+    - name: Sleep 1 minute
+      run: sleep ${{env.delay}}  
+    - name: check helm list  
+      run: helm ls -A  
+    - name: Check deployed pod
+      run: kubectl get pods -n  ${{env.namespace}}
+    - name: Sleep for 1 minute
+      run: sleep ${{env.delay}}
+    - name: uninstall application
+      run: helm uninstall ${{env.app_name}} -n ${{env.namespace}}
