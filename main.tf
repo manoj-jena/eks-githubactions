@@ -43,10 +43,6 @@ module "eks_infra" {
   region                        = var.region
   project                       = var.project
   #version                       = var.version-1
-  tags = {
-    Project     = var.project
-    Owner       = var.owner
-  }
 }
 
 #EKS cluster-node
