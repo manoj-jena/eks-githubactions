@@ -17,10 +17,7 @@ resource "aws_eks_node_group" "this" {
   disk_size      = var.disk_size
   instance_types = ["t2.medium"]
 
-  tags = merge(
-    var.tags
-  )
-
+ 
   depends_on = [
     aws_iam_role_policy_attachment.node_AmazonEKSWorkerNodePolicy,
     aws_iam_role_policy_attachment.node_AmazonEKS_CNI_Policy,
