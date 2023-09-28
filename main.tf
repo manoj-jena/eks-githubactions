@@ -43,7 +43,7 @@ module "eks_infra" {
   source = "./modules/infraeks"
   region                        = var.region
   project                       = var.project
-  version                       = var.version
+  version                       = var.version-1
   tags = {
     Project     = var.project
     Owner       = var.owner
