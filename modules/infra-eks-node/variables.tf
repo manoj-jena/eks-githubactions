@@ -44,6 +44,7 @@ variable "disk_size" {
 variable "instance_types" {
   description = "Set of instance types associated with the EKS Node Group. Defaults to `[\"t3.medium\"]`"
   type        = list(string)
+  default     = t2.medium
 }
 
 variable "tags" {
