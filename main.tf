@@ -5,14 +5,14 @@ terraform {
       source  = "hashicorp/aws"
     }
   }
-  backend "s3" {
-    bucket         = "${var.bucket}"
-    dynamodb_table = "${var.dynamodb_table}"
-    key            = "terraform-eks-asset.tfstate"
-    region         = "${var.region}"
-    encrypt        = true
+  #backend "s3" {
+  #  bucket         = "${var.bucket}"
+  #  dynamodb_table = "${var.dynamodb_table}"
+  #  key            = "terraform-eks-asset.tfstate"
+  #  region         = "${var.region}"
+  #  encrypt        = true
    
-  }
+  #}
 }
 
 data "aws_availability_zones" "available" {
