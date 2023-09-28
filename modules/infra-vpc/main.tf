@@ -82,7 +82,7 @@ resource "aws_route_table_association" "internet_access" {
 
 # NAT Elastic IP
 resource "aws_eip" "main" {
-  vpc = true
+  domain = "vpc" 
 
   tags = {
     Name = "${var.project}-ngw-ip"
