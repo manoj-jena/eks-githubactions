@@ -27,10 +27,6 @@ module "vpc_infra" {
   project                       = var.project
   vpc_cidr                      = var.vpc_cidr
   subnet_cidr_bits              = var.subnet_cidr_bits
-  tags = {
-    Project     = var.project
-    Owner       = var.owner
-  }
 }
 
 #EKS cluster
@@ -57,9 +53,5 @@ module "eks_infra_node" {
   ami_type                      = var.ami_type
   capacity_type                 = var.capacity_type
   disk_size                     = var.disk_size
-   tags = {
-    Project     = var.project
-    Owner       = var.owner
-  }
 }
 
