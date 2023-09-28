@@ -62,8 +62,7 @@ module "eks_infra_node" {
   ami_type                      = var.ami_type
   capacity_type                 = var.capacity_type
   disk_size                     = var.disk_size
-  instance_types                = var.instance_types
-  tags = {
+   tags = {
     Project     = var.project
     Owner       = var.owner
   }
