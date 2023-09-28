@@ -35,10 +35,10 @@ module "vpc_infra" {
 
 #EKS cluster
 module "eks_infra" {
-  depends_on = [
-    module.vpc_infra,
-    module.s3_artifacts_bucket
-  ]
+  #depends_on = [
+  #  module.vpc_infra,
+  #  module.s3_artifacts_bucket
+  #]
   source = "./modules/infraeks"
   region                        = var.region
   project                       = var.project
