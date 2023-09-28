@@ -27,6 +27,11 @@ module "vpc_infra" {
   project                       = var.project
   vpc_cidr                      = var.vpc_cidr
   subnet_cidr_bits              = var.subnet_cidr_bits
+  tags = {
+    Project     = var.project
+    #Owner       = var.owner
+  }
+
 }
 
 #EKS cluster
