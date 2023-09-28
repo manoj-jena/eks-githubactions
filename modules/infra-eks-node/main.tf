@@ -15,7 +15,7 @@ resource "aws_eks_node_group" "this" {
   ami_type       = var.ami_type
   capacity_type  = var.capacity_type 
   disk_size      = var.disk_size
-  instance_types = var.instance_types
+  instance_types = ["t2.medium"]
 
   tags = merge(
     var.tags
