@@ -20,15 +20,6 @@ data "aws_availability_zones" "available" {
     state = "available"
 }
 
-#Module S3 bucket for storing pipeline artifacts
-#module "s3_artifacts_bucket" {
-#  source                = "./modules/s3"
-#  bucket                        = var.bucket
-#  dynamodb_table                = var.dynamodb_table
-#  region                        = var.region
-  
-#}
-
 #VPC Module 
 module "vpc_infra" {
   source = "./modules/infra-vpc"
@@ -49,7 +40,7 @@ module "eks_infra" {
     module.vpc_infra,
     module.s3_artifacts_bucket
   ]
-  source = "./modules/eks"
+  source = "./modules/infra-eks"
   region                        = var.region
   project                       = var.project
   version                       = var.version
@@ -65,7 +56,7 @@ module "eks_infra_node" {
     module.eks_infra,
     module.s3_artifacts_bucket
   ]
-  source = "./modules/eks-node"
+  source = "./modules/infra-eks-node"
   project                       = var.project
   subnet_ids                    = var.subnet_ids
   min_size                      = var.min_size
