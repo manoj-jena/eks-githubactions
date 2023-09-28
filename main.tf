@@ -52,10 +52,6 @@ module "eks_infra" {
 
 #EKS cluster-node
 module "eks_infra_node" {
-  depends_on = [
-    module.eks_infra,
-    module.s3_artifacts_bucket
-  ]
   source = "./modules/infra-eks-node"
   project                       = var.project
   subnet_ids                    = var.subnet_ids
