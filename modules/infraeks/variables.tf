@@ -9,7 +9,7 @@ variable "region" {
   type        = string
 }
 
-variable "version" {
+variable "version-1" {
   description = "EKS version details"
   type        = string
 }
