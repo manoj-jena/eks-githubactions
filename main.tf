@@ -40,7 +40,7 @@ module "eks_infra" {
     module.vpc_infra,
     module.s3_artifacts_bucket
   ]
-  source = "./modules/infra-eks"
+  source = "./modules/infraeks"
   region                        = var.region
   project                       = var.project
   version                       = var.version
@@ -52,6 +52,7 @@ module "eks_infra" {
 
 #EKS cluster-node
 module "eks_infra_node" {
+
   source = "./modules/infra-eks-node"
   project                       = var.project
   subnet_ids                    = var.subnet_ids
