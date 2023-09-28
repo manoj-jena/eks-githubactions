@@ -12,5 +12,5 @@ variable "region" {
 variable "version-1" {
   description = "EKS version details"
   type        = string
-  default     = 1.2.7
+  default     = "1.25"
 }
