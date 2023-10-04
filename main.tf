@@ -1,177 +1,125 @@
-provider "kubernetes" {
-host = module.eks.cluster_endpoint
-cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#step1: add the provider code. This will ensure that you use the AWS provider.
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+terraform {
+ required_providers {
+  aws = {
+   source = "hashicorp/aws"
+  }
+ }
 }
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#step2: Set up the first resource for the IAM role.
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+resource "aws_iam_role" "eks-iam-role" {
+ name = "devops-eks-iam-role"
 
-data "aws_availability_zones" "available" {
-    state = "available"
-}
-locals {
-  cluster_name = var.cluster_name
-  owner        = "TSI"
-}
-#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-# Module for creating a VPC
-#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ path = "/"
 
-module "vpc" {
-source = "terraform-aws-modules/vpc/aws"
-version = "5.0.0"
-name = var.vpc_name
-
-cidr = "10.0.0.0/16"
-azs = slice(data.aws_availability_zones.available.names, 0, var.availability_zones_count)
-
-private_subnets = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
-public_subnets = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
-
-enable_nat_gateway = true
-single_nat_gateway = true
-enable_dns_hostnames = true
-
-public_subnet_tags = {
-"kubernetes.io/cluster/${local.cluster_name}" = "shared"
-"kubernetes.io/role/elb" = 1
-}
-
-private_subnet_tags = {
-"kubernetes.io/cluster/${local.cluster_name}" = "shared"
-"kubernetes.io/role/internal-elb" = 1
-}
-}
-#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-# Module for creating a EKS clsuter
-#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-module "eks" {
-source = "terraform-aws-modules/eks/aws"
-version = "~> 19.0"
-
-cluster_name = var.cluster_name
-cluster_version = var.eks_cluster_version
-
-vpc_id = module.vpc.vpc_id
-subnet_ids = module.vpc.private_subnets
-cluster_endpoint_public_access = true
-
-eks_managed_node_group_defaults = {
-ami_type = "AL2_x86_64"
-}
-#----------
-depends_on = [
-aws_iam_role_policy_attachment.eks_policy
-  ]
-
-eks_managed_node_groups = {
-one = {
-name = "node-group-1"
-
-instance_types = ["t2.medium"]
-
-min_size = 1
-max_size = 3
-desired_size = 2
-}
-
-two = {
-name = "node-group-2"
-
-instance_types = ["t2.medium"]
-
-min_size = 1
-max_size = 2
-desired_size = 1
-}
-  depends_on = [
-    aws_iam_role_policy_attachment.node_AmazonEKSWorkerNodePolicy,
-    aws_iam_role_policy_attachment.node_AmazonEKS_CNI_Policy,
-    aws_iam_role_policy_attachment.node_AmazonEC2ContainerRegistryReadOnly,
-  ]
-}
-}
-# EKS Cluster IAM Role creation
-#---------
-resource "aws_iam_role" "cluster" {
-  name = "${var.cluster_name}-Role"
-
-  assume_role_policy = <<POLICY
+ assume_role_policy = <<EOF
 {
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "eks.amazonaws.com"
-      },
-      "Action": "sts:AssumeRole"
-    }
-  ]
-}
-POLICY
-}
-
-# IAM Policy Creation
-#-----
-resource "aws_iam_policy" "eks_policy" {
-  #count       = var.create_new_role ? 1 : 0
-  name        = "${var.cluster_name}-eks-policy"
-  description = "Policy to allow eks to execute"
-  policy      = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-            "Action": "ec2:*",
-            "Effect": "Allow",
-            "Resource": "*"
-        },
-    {
-            "Action": "eks:*",
-            "Effect": "Allow",
-            "Resource": "*"
-    },
-    {
-            "Effect": "Allow",
-            "Action": "cloudwatch:*",
-            "Resource": "*"
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "logs:CreateLogGroup",
-        "logs:CreateLogStream",
-        "logs:PutLogEvents"
-      ],
-      "Resource": "*"
-    }
-  ]
+ "Version": "2012-10-17",
+ "Statement": [
+  {
+   "Effect": "Allow",
+   "Principal": {
+    "Service": "eks.amazonaws.com"
+   },
+   "Action": "sts:AssumeRole"
+  }
+ ]
 }
 EOF
+
+}
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#step3: Once the role is created, attach these two policies to it:
+# AmazonEKSClusterPolicy
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+resource "aws_iam_role_policy_attachment" "AmazonEKSClusterPolicy" {
+ policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+ role    = aws_iam_role.eks-iam-role.name
+}
+#AmazonEC2ContainerRegistryReadOnly-EKS
+resource "aws_iam_role_policy_attachment" "AmazonEC2ContainerRegistryReadOnly-EKS" {
+ policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+ role    = aws_iam_role.eks-iam-role.name
 }
 
-#Resource attach
-#----------
-resource "aws_iam_role_policy_attachment" "node_AmazonEKSClusterPolicy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
-  role       = aws_iam_role.cluster.name
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#Step 4. Once the policies are attached, create the EKS cluster.
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+resource "aws_eks_cluster" "devops-eks" {
+ name = "devops-cluster"
+ role_arn = aws_iam_role.eks-iam-role.arn
+
+ vpc_config {
+  subnet_ids = [var.subnet_id_1, var.subnet_id_2]
+ }
+
+ depends_on = [
+  aws_iam_role.eks-iam-role,
+ ]
 }
-resource "aws_iam_role_policy_attachment" "eks_policy" {
-  policy_arn = "arn:aws:iam::aws:policy/eks_policy"
-  role       = aws_iam_role.cluster.name
-}
-#--------
-resource "aws_iam_role_policy_attachment" "node_AmazonEKSWorkerNodePolicy" {
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#Step 5. Set up an IAM role for the worker nodes
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+resource "aws_iam_role" "workernodes" {
+  name = "eks-node-group-example"
+ 
+  assume_role_policy = jsonencode({
+   Statement = [{
+    Action = "sts:AssumeRole"
+    Effect = "Allow"
+    Principal = {
+     Service = "ec2.amazonaws.com"
+    }
+   }]
+   Version = "2012-10-17"
+  })
+ }
+ 
+ resource "aws_iam_role_policy_attachment" "AmazonEKSWorkerNodePolicy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
-  role       = aws_iam_role.node.name
-}
-
-resource "aws_iam_role_policy_attachment" "node_AmazonEKS_CNI_Policy" {
+  role    = aws_iam_role.workernodes.name
+ }
+ 
+ resource "aws_iam_role_policy_attachment" "AmazonEKS_CNI_Policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
-  role       = aws_iam_role.node.name
-}
-
-resource "aws_iam_role_policy_attachment" "node_AmazonEC2ContainerRegistryReadOnly" {
+  role    = aws_iam_role.workernodes.name
+ }
+ 
+ resource "aws_iam_role_policy_attachment" "EC2InstanceProfileForImageBuilderECRContainerBuilds" {
+  policy_arn = "arn:aws:iam::aws:policy/EC2InstanceProfileForImageBuilderECRContainerBuilds"
+  role    = aws_iam_role.workernodes.name
+ }
+ 
+ resource "aws_iam_role_policy_attachment" "AmazonEC2ContainerRegistryReadOnly" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-  role       = aws_iam_role.node.name
-}
-#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  role    = aws_iam_role.workernodes.name
+ }
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#Step 6. 
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ resource "aws_eks_node_group" "worker-node-group" {
+  cluster_name  = aws_eks_cluster.devops-eks.name
+  node_group_name = "devops-workernodes"
+  node_role_arn  = aws_iam_role.workernodes.arn
+  subnet_ids   = [var.subnet_id_1, var.subnet_id_2]
+  instance_types = ["t2.medium"]
+ 
+  scaling_config {
+   desired_size = 1
+   max_size   = 1
+   min_size   = 1
+  }
+ 
+  depends_on = [
+   aws_iam_role_policy_attachment.AmazonEKSWorkerNodePolicy,
+   aws_iam_role_policy_attachment.AmazonEKS_CNI_Policy,
+   #aws_iam_role_policy_attachment.AmazonEC2ContainerRegistryReadOnly,
+  ]
+ }
+
+  ]
+ }
