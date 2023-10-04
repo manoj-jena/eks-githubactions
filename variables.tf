@@ -1,10 +1,15 @@
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 # EKS Cluster 
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-variable "project" {
+variable "vpc_name" {
+  description = "VPC name"
+  type = string
+  default     = "TSI-DEMO-VPC"
+}
+variable "cluster_name" {
   description = "Name to be used on all the resources as identifier. e.g. Project name, Application name"
   type = string
-  default     = "tsi-asset-demo"
+  default     = "TSI-DEMO-EKS-CLUSTER"
 }
 
 variable "region" {
