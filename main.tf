@@ -1,34 +1,3 @@
-terraform {
-required_version = ">= 1.0.0"
-
-required_providers {
-aws = {
-source = "hashicorp/aws"
-}
-
-random = {
-source = "hashicorp/random"
-version = "~> 3.4.3"
-}
-
-tls = {
-source = "hashicorp/tls"
-version = "~> 4.0.4"
-}
-
-cloudinit = {
-source = "hashicorp/cloudinit"
-version = "~> 2.2.0"
-}
-
-kubernetes = {
-source = "hashicorp/kubernetes"
-version = "~> 2.16.1"
-}
-}
-
-}
-
 provider "kubernetes" {
 host = module.eks.cluster_endpoint
 cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
@@ -40,7 +9,7 @@ cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_d
 
 module "vpc" {
 source = "terraform-aws-modules/vpc/aws"
-version = "3.14.2"
+version = "5.0.0"
 
 name = "Techm-Asset08-VPC"
 
@@ -71,7 +40,7 @@ private_subnet_tags = {
 
 module "eks" {
 source = "terraform-aws-modules/eks/aws"
-version = "19.0.4"
+version = "19.1.4"
 
 cluster_name = tsi-asset-demo-cluster
 cluster_version = "1.27"
