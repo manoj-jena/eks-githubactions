@@ -40,7 +40,7 @@ private_subnet_tags = {
 
 module "eks" {
 source = "terraform-aws-modules/eks/aws"
-version = "19.1.4"
+version = "~> 19.0"
 
 cluster_name = tsi-asset-demo-cluster
 cluster_version = "1.27"
