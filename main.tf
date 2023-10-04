@@ -60,19 +60,6 @@ eks_managed_node_group_defaults = {
 ami_type = "AL2_x86_64"
 
 }
-#-----------------
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Sid": "eksadministrator",
-            "Effect": "Allow",
-            "Action": "eks:*",
-            "Resource": "*"
-        }
-    ]
-}
-#-----------------
 eks_managed_node_groups = {
 one = {
 name = "node-group-1"
