@@ -42,10 +42,15 @@ resource "aws_iam_role_policy_attachment" "AmazonEC2ContainerRegistryReadOnly-EK
 resource "aws_eks_cluster" "devops-eks" {
  name = "devops-cluster"
  role_arn = aws_iam_role.eks-iam-role.arn
+ version  = "1.25"
 
- vpc_config {
-  subnet_ids = [var.subnet_id_1, var.subnet_id_2]
- }
+  vpc_config {
+    # security_group_ids      = [aws_security_group.eks_cluster.id, aws_security_group.eks_nodes.id] # already applied to subnet
+    subnet_ids              = flatten([aws_subnet.public[*].id, aws_subnet.private[*].id])
+    endpoint_private_access = true
+    endpoint_public_access  = true
+    public_access_cidrs     = ["0.0.0.0/0"]
+  }
 
  depends_on = [
   aws_iam_role.eks-iam-role,
