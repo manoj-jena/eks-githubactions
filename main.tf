@@ -61,6 +61,28 @@ ami_type = "AL2_x86_64"
 depends_on = [
 aws_iam_role_policy_attachment.eks_policy
   ]
+
+eks_managed_node_groups = {
+one = {
+name = "node-group-1"
+
+instance_types = ["t2.medium"]
+
+min_size = 1
+max_size = 3
+desired_size = 2
+}
+
+two = {
+name = "node-group-2"
+
+instance_types = ["t2.medium"]
+
+min_size = 1
+max_size = 2
+desired_size = 1
+}
+}
 # EKS Cluster IAM Role creation
 #---------
 resource "aws_iam_role" "cluster" {
@@ -128,26 +150,5 @@ resource "aws_iam_role_policy_attachment" "eks_policy" {
   role       = aws_iam_role.cluster.name
 }
 #--------
-eks_managed_node_groups = {
-one = {
-name = "node-group-1"
-
-instance_types = ["t2.medium"]
-
-min_size = 1
-max_size = 3
-desired_size = 2
-}
-
-two = {
-name = "node-group-2"
-
-instance_types = ["t2.medium"]
-
-min_size = 1
-max_size = 2
-desired_size = 1
-}
-}
 }
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
