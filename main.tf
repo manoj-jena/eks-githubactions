@@ -1,14 +1,4 @@
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-#step1: add the provider code. This will ensure that you use the AWS provider.
-#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-terraform {
- required_providers {
-  aws = {
-   source = "hashicorp/aws"
-  }
- }
-}
-#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 #step2: Set up the first resource for the IAM role.
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 resource "aws_iam_role" "eks-iam-role" {
