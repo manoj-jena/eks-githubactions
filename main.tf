@@ -151,8 +151,12 @@ EOF
 
 #Resource attach
 #----------
-resource "aws_iam_role_policy_attachment" "eks_policy" {
+resource "aws_iam_role_policy_attachment" "node_AmazonEKSClusterPolicy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+  role       = aws_iam_role.cluster.name
+}
+resource "aws_iam_role_policy_attachment" "eks_policy" {
+  policy_arn = "arn:aws:iam::aws:policy/eks_policy"
   role       = aws_iam_role.cluster.name
 }
 #--------
