@@ -1,62 +1,110 @@
 terraform {
-  required_version = ">= 1.0.0"
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-    }
-  }
-  #backend "s3" {
-  #  bucket         = "${var.bucket}"
-  #  dynamodb_table = "${var.dynamodb_table}"
-  #  key            = "terraform-eks-asset.tfstate"
-  #  region         = "${var.region}"
-  #  encrypt        = true
-   
-  #}
+required_version = ">= 1.0.0"
+
+required_providers {
+aws = {
+source = "hashicorp/aws"
 }
 
-data "aws_availability_zones" "available" {
-    state = "available"
+random = {
+source = "hashicorp/random"
+version = "~> 3.4.3"
 }
 
-#VPC Module 
-module "vpc_infra" {
-  source = "./modules/infra-vpc"
-  region                        = var.region
-  availability_zones_count      = var.availability_zones_count
-  project                       = var.project
-  vpc_cidr                      = var.vpc_cidr
-  subnet_cidr_bits              = var.subnet_cidr_bits
-  tags = {
-    Project     = var.project
-    #Owner       = var.owner
-  }
+tls = {
+source = "hashicorp/tls"
+version = "~> 4.0.4"
+}
+
+cloudinit = {
+source = "hashicorp/cloudinit"
+version = "~> 2.2.0"
+}
+
+kubernetes = {
+source = "hashicorp/kubernetes"
+version = "~> 2.16.1"
+}
+}
 
 }
 
-#EKS cluster
-module "eks_infra" {
-  #depends_on = [
-  #  module.vpc_infra,
-  #  module.s3_artifacts_bucket
-  #]
-  source = "./modules/infraeks"
-  region                        = var.region
-  project                       = var.project
-  #version                       = var.version-1
+provider "kubernetes" {
+host = module.eks.cluster_endpoint
+cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+}
+  
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+# Module for creating a VPC
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+module "vpc" {
+source = "terraform-aws-modules/vpc/aws"
+version = "3.14.2"
+
+name = "Techm-Asset08-VPC"
+
+cidr = "10.0.0.0/16"
+azs = slice(data.aws_availability_zones.available.names, 0, 3)
+
+private_subnets = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+public_subnets = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
+
+enable_nat_gateway = true
+single_nat_gateway = true
+enable_dns_hostnames = true
+
+public_subnet_tags = {
+"kubernetes.io/cluster/${local.cluster_name}" = "shared"
+"kubernetes.io/role/elb" = 1
 }
 
-#EKS cluster-node
-module "eks_infra_node" {
-
-  source = "./modules/infra-eks-node"
-  project                       = var.project
-  subnet_ids                    = var.subnet_ids
-  min_size                      = var.min_size
-  max_size                      = var.max_size 
-  desired_size                  = var.desired_size
-  ami_type                      = var.ami_type
-  capacity_type                 = var.capacity_type
-  disk_size                     = var.disk_size
+private_subnet_tags = {
+"kubernetes.io/cluster/${local.cluster_name}" = "shared"
+"kubernetes.io/role/internal-elb" = 1
+}
 }
 
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+# Module for creating a EKS clsuter
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+module "eks" {
+source = "terraform-aws-modules/eks/aws"
+version = "19.0.4"
+
+cluster_name = tsi-asset-demo-cluster
+cluster_version = "1.27"
+
+vpc_id = module.vpc.vpc_id
+subnet_ids = module.vpc.private_subnets
+cluster_endpoint_public_access = true
+
+eks_managed_node_group_defaults = {
+ami_type = "AL2_x86_64"
+
+}
+
+eks_managed_node_groups = {
+one = {
+name = "node-group-1"
+
+instance_types = ["t2.medium"]
+
+min_size = 1
+max_size = 3
+desired_size = 2
+}
+
+two = {
+name = "node-group-2"
+
+instance_types = ["t2.medium"]
+
+min_size = 1
+max_size = 2
+desired_size = 1
+}
+}
+}
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
