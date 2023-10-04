@@ -1,11 +1,6 @@
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 # EKS Cluster 
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-variable "vpc_name" {
-  description = "VPC name"
-  type = string
-  default     = "TSI-DEMO-VPC"
-}
 variable "cluster_name" {
   description = "Name to be used on all the resources as identifier. e.g. Project name, Application name"
   type = string
@@ -18,7 +13,7 @@ variable "region" {
   default     = "eu-central-1"
 }
 
-variable "version-1" {
+variable "eks_cluster_version" {
   description = "EKS version details"
   type        = string
   default     = "1.25"
@@ -71,10 +66,15 @@ variable "disk_size" {
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 # VPC Infra
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+variable "vpc_name" {
+  description = "VPC name"
+  type = string
+  default     = "TSI-DEMO-VPC"
+}
 variable "availability_zones_count" {
   description = "The number of AZs."
   type        = number
-  default     = 2
+  default     = 3
 }
 
 variable "vpc_cidr" {
@@ -89,26 +89,4 @@ variable "subnet_cidr_bits" {
   default     = 8
 }
 
-variable "tags" {
-  description = "A map of tags to add to all resources"
-  type        = map(string)
-  default = {
-    "Project"     = "TerraformEKS-TSI"
-    "Owner"       = "Manoj-Bala"
-  }
-}
-#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-# S3 Bucket
-#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-variable "bucket" {
-  description = "s3 bucket name"
-  type        = string
-  default     = "s3-manoj2"
-}
-
-variable "dynamodb_table" {
-  description = "dynamodb table "
-  type        = string
-  default     = "terraform-db-table"
-}
 
