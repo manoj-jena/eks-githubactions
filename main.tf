@@ -40,7 +40,6 @@ private_subnet_tags = {
 "kubernetes.io/role/internal-elb" = 1
 }
 }
-
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 # Module for creating a EKS clsuter
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
