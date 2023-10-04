@@ -83,6 +83,7 @@ max_size = 2
 desired_size = 1
 }
 }
+}
 # EKS Cluster IAM Role creation
 #---------
 resource "aws_iam_role" "cluster" {
@@ -150,5 +151,4 @@ resource "aws_iam_role_policy_attachment" "eks_policy" {
   role       = aws_iam_role.cluster.name
 }
 #--------
-}
 #^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
