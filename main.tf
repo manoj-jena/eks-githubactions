@@ -56,8 +56,78 @@ cluster_endpoint_public_access = true
 
 eks_managed_node_group_defaults = {
 ami_type = "AL2_x86_64"
-
 }
+#----------
+depends_on = [
+aws_iam_role_policy_attachment.eks_policy
+  ]
+# EKS Cluster IAM Role creation
+#---------
+resource "aws_iam_role" "cluster" {
+  name = "${var.cluster_name}-Role"
+
+  assume_role_policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "eks.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+POLICY
+}
+
+# IAM Policy Creation
+#-----
+resource "aws_iam_policy" "eks_policy" {
+  count       = var.create_new_role ? 1 : 0
+  name        = "${var.cluster_name}-eks-policy"
+  description = "Policy to allow eks to execute"
+  policy      = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+            "Action": "ec2:*",
+            "Effect": "Allow",
+            "Resource": "*"
+        },
+    {
+            "Action": "eks:*",
+            "Effect": "Allow",
+            "Resource": "*"
+    },
+    {
+            "Effect": "Allow",
+            "Action": "cloudwatch:*",
+            "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+EOF
+}
+
+#Resource attach
+#----------
+resource "aws_iam_role_policy_attachment" "eks_policy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+  role       = aws_iam_role.cluster.name
+}
+#--------
 eks_managed_node_groups = {
 one = {
 name = "node-group-1"
