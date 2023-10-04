@@ -108,7 +108,7 @@ POLICY
 # IAM Policy Creation
 #-----
 resource "aws_iam_policy" "eks_policy" {
-  count       = var.create_new_role ? 1 : 0
+  #count       = var.create_new_role ? 1 : 0
   name        = "${var.cluster_name}-eks-policy"
   description = "Policy to allow eks to execute"
   policy      = <<EOF
