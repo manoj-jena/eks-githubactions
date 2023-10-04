@@ -42,6 +42,5 @@ jobs:
     # - name: Configure kubectl for EKS
     #   run: aws eks update-kubeconfig --name ${{env.cluster_name}} --region ${{env.region}}
           
-  
     - name: Destroy Infrastructure
       run: terraform destroy -auto-approve -lock=false  
