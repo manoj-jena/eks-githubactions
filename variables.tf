@@ -1,101 +1,99 @@
-#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-# EKS Cluster 
-#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-variable "cluster_name" {
-  description = "Name to be used on all the resources as identifier. e.g. Project name, Application name"
-  type = string
-  default     = "TSI-DEMO-EKS-CLUSTER"
-}
-
 variable "region" {
-  description = "The aws region. https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html"
+  description = "The aws region. 
   type        = string
   default     = "eu-central-1"
 }
-
-variable "eks_cluster_version" {
-  description = "EKS version details"
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+variable "env" {
+  description = "Environment name."
   type        = string
-  default     = "1.25"
-}
-#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-# # EKS Managed Node Group
-#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-variable "subnet_ids" {
-  description = "Identifiers of EC2 Subnets to associate with the EKS Node Group. These subnets must have the following resource tag: `kubernetes.io/cluster/CLUSTER_NAME`"
-  type        = list(string)
-  default     = null
+  default     = "techm-tsi"
 }
 
-variable "min_size" {
-  description = "Minimum number of instances/nodes"
-  type        = number
-  default     = 1
-}
-
-variable "max_size" {
-  description = "Maximum number of instances/nodes"
-  type        = number
-  default     = 5
-}
-
-variable "desired_size" {
-  description = "Desired number of instances/nodes"
-  type        = number
-  default     = 2
-}
-
-variable "ami_type" {
-  description = "Type of Amazon Machine Image (AMI) associated with the EKS Node Group. Valid values are `AL2_x86_64`, `AL2_x86_64_GPU`, `AL2_ARM_64`, `CUSTOM`, `BOTTLEROCKET_ARM_64`, `BOTTLEROCKET_x86_64`"
-  type        = string
-  default     = "AL2_x86_64"
-}
-
-variable "capacity_type" {
-  description = "Type of capacity associated with the EKS Node Group. Valid values: `ON_DEMAND`, `SPOT`"
-  type        = string
-  default     = "ON_DEMAND"
-}
-
-variable "disk_size" {
-  description = "Disk size in GiB for nodes. Defaults to `20`. Only valid when `use_custom_launch_template` = `false`"
-  type        = number
-  default     = 20
-}
-
-#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-# VPC Infra
-#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-variable "vpc_name" {
-  description = "VPC name"
-  type = string
-  default     = "TSI-DEMO-VPC"
-}
-variable "availability_zones_count" {
-  description = "The number of AZs."
-  type        = number
-  default     = 3
-}
-
-variable "vpc_cidr" {
-  description = "The CIDR block for the VPC. Default value is a valid CIDR, but not acceptable by AWS and should be overridden"
+variable "vpc_cidr_block" {
+  description = "CIDR (Classless Inter-Domain Routing)."
   type        = string
   default     = "10.0.0.0/16"
 }
 
-variable "subnet_cidr_bits" {
-  description = "The number of subnet bits for the CIDR. For example, specifying a value 8 for this parameter will create a CIDR with a mask of /24."
-  type        = number
-  default     = 8
+variable "azs" {
+  description = "Availability zones for subnets."
+  type        = list(string)
+  default     = 3
 }
-#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
- variable "subnet_id_1" {
-  type = string
-  default = "subnet-your_first_subnet_id"
- }
- 
- variable "subnet_id_2" {
-  type = string
-  default = "subnet-your_second_subnet_id"
- }
 
+variable "private_subnets" {
+  description = "CIDR ranges for private subnets."
+  type        = list(string)
+  default =  ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"] 
+}
+
+variable "public_subnets" {
+  description = "CIDR ranges for public subnets."
+  type        = list(string)
+  default = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"] 
+}
+
+variable "private_subnet_tags" {
+  description = "Private subnet tags."
+  type        = map(any)
+  default = {}
+}
+
+variable "public_subnet_tags" {
+  description = "Private subnet tags."
+  type        = map(any)
+  default = {}
+}
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+variable "eks_version" {
+  description = "Desired Kubernetes master version."
+  type        = string
+  default     = "1.25"
+}
+variable "eks_name" {
+  description = "Name of the cluster."
+  type        = string
+  default     = "Techm-TSI"
+}
+variable "subnet_ids" {
+  description = "List of subnet IDs. Must be in at least two different availability zones."
+  type        = list(string)
+  default     = null
+}
+variable "node_iam_policies" {
+  description = "List of IAM Policies to attach to EKS-managed nodes."
+  type        = map(any)
+  default = {
+    1 = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+    2 = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+    3 = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+    4 = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+  }
+}
+
+variable "node_groups" {
+  description = "EKS node groups"
+  type        = map(any)
+  default = {
+  one = {
+  name = "node-group-1"
+  instance_types = ["t3.small"]
+  min_size = 1
+  max_size = 3
+  desired_size = 2
+        }
+  two = {
+  name = "node-group-2"
+  instance_types = ["t3.small"]
+  min_size = 1
+  max_size = 2
+  desired_size = 1
+        }
+           }
+  }
+variable "enable_irsa" {
+  description = "Determines whether to create an OpenID Connect Provider for EKS to enable IRSA"
+  type        = bool
+  default     = true
+}
